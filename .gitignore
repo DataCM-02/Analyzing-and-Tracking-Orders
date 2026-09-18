@@ -25,3 +25,13 @@ profiles.yml
 .idea/
 .DS_Store
 Thumbs.db
+
+# Python packaging artifacts
+*.egg-info/
+
+# dbt local artifacts
+dbt/**/target/
+dbt/**/logs/
+dbt/**/dbt_packages/
+dbt/**/profiles.yml
+dbt/**/.user.yml
