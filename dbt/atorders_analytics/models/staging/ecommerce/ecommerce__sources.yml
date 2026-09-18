@@ -1,0 +1,37 @@
+version: 2
+
+sources:
+  - name: ecommerce
+    description: "Synthetic operational data used by ATOrders."
+    schema: ecommerce
+
+    tables:
+      - name: customers
+        description: "B2B customers."
+
+      - name: products
+        description: "Products available for ordering."
+
+      - name: warehouses
+        description: "Distribution centers."
+
+      - name: carriers
+        description: "Carriers responsible for deliveries."
+
+      - name: orders
+        description: "Order-level operational records."
+
+      - name: order_items
+        description: "Products and quantities included in each order."
+
+      - name: payments
+        description: "Payment attempts associated with orders."
+
+      - name: shipments
+        description: "Shipment-level operational records."
+
+      - name: shipment_items
+        description: "Items and quantities included in shipments."
+
+      - name: order_events
+        description: "Events recorded throughout the order lifecycle."

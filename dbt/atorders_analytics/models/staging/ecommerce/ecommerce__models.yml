@@ -1,0 +1,601 @@
+version: 2
+
+models:
+  - name: stg_ecommerce__customers
+    description: "Standardized B2B customer records."
+    config:
+      tags: ["staging", "customers"]
+
+    columns:
+      - name: customer_id
+        description: "Unique customer identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_code
+        description: "Business code assigned to the customer."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_name
+        description: "Customer company name."
+        data_tests:
+          - not_null
+
+      - name: customer_status
+        description: "Current operational customer status."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - active
+                  - inactive
+                  - blocked
+
+      - name: state_code
+        description: "Two-character Brazilian state code."
+        data_tests:
+          - not_null
+
+      - name: created_at
+        data_tests:
+          - not_null
+
+      - name: updated_at
+        data_tests:
+          - not_null
+
+
+
+
+  - name: stg_ecommerce__products
+    description: "Standardized product master data for analytical consumption."
+
+    columns:
+      - name: product_id
+        description: "Unique product identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: sku
+        description: "Unique commercial product code."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: product_name
+        description: "Product name."
+        data_tests:
+          - not_null
+
+      - name: product_category
+        description: "Standardized product category."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - office_supplies
+                  - cleaning
+                  - technology
+                  - electrical
+                  - safety
+                  - tools
+                  - packaging
+                  - maintenance
+
+      - name: unit_price
+        description: "Registered product unit price."
+        data_tests:
+          - not_null
+
+      - name: weight_kg
+        description: "Product weight in kilograms."
+        data_tests:
+          - not_null
+
+      - name: product_status
+        description: "Current product status."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - active
+                  - inactive
+
+      - name: created_at
+        description: "Timestamp when the product record was created."
+        data_tests:
+          - not_null
+
+      - name: updated_at
+        description: "Timestamp when the product record was last updated."
+        data_tests:
+          - not_null
+
+
+
+
+  - name: stg_ecommerce__warehouses
+    description: "Standardized warehouse master data for analytical consumption."
+
+    columns:
+      - name: warehouse_id
+        description: "Unique warehouse identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: warehouse_code
+        description: "Unique business code assigned to the warehouse."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: warehouse_name
+        description: "Warehouse name."
+        data_tests:
+          - not_null
+
+      - name: city
+        description: "City where the warehouse is located."
+        data_tests:
+          - not_null
+
+      - name: state_code
+        description: "Two-letter state code where the warehouse is located."
+        data_tests:
+          - not_null
+
+      - name: region
+        description: "Geographical region associated with the warehouse."
+        data_tests:
+          - not_null
+
+      - name: warehouse_status
+        description: "Current warehouse operational status."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - active
+                  - inactive 
+
+
+
+
+  - name: stg_ecommerce__carriers
+    description: "Standardized carrier master data for analytical consumption."
+
+    columns:
+      - name: carrier_id
+        description: "Unique carrier identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: carrier_code
+        description: "Unique business code assigned to the carrier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: carrier_name
+        description: "Carrier name."
+        data_tests:
+          - not_null
+
+      - name: carrier_status
+        description: "Current carrier operational status."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - active
+                  - inactive
+
+
+
+
+  - name: stg_ecommerce__orders
+    description: "Standardized order data for analytical consumption."
+
+    columns:
+      - name: order_id
+        description: "Unique order identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_number
+        description: "Unique business number assigned to the order."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_id
+        description: "Identifier of the customer who placed the order."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__customers')
+                field: customer_id
+
+      - name: warehouse_id
+        description: "Identifier of the warehouse assigned to the order."
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__warehouses')
+                field: warehouse_id
+
+      - name: order_status
+        description: "Current order lifecycle status."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - created
+                  - payment_pending
+                  - paid
+                  - allocated
+                  - picking
+                  - picked
+                  - packed
+                  - shipped
+                  - in_transit
+                  - delivered
+                  - cancelled
+
+      - name: service_level
+        description: "Delivery service level selected for the order."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - standard
+                  - express
+                  - priority
+
+      - name: promised_delivery_at
+        description: "Promised delivery timestamp."
+        data_tests:
+          - not_null
+
+      - name: subtotal_amount
+        description: "Order amount before discounts, shipping and taxes."
+        data_tests:
+          - not_null
+
+      - name: discount_amount
+        description: "Discount amount applied to the order."
+        data_tests:
+          - not_null
+
+      - name: shipping_amount
+        description: "Shipping amount charged for the order."
+        data_tests:
+          - not_null
+
+      - name: tax_amount
+        description: "Tax amount applied to the order."
+        data_tests:
+          - not_null
+
+      - name: total_amount
+        description: "Final order amount."
+        data_tests:
+          - not_null
+
+      - name: created_at
+        description: "Timestamp when the order was created."
+        data_tests:
+          - not_null
+
+      - name: updated_at
+        description: "Timestamp when the order was last updated."
+        data_tests:
+          - not_null
+
+      - name: cancelled_at
+        description: "Timestamp when the order was cancelled, when applicable."
+
+      - name: cancellation_reason
+        description: "Reason for order cancellation, when provided."  
+
+
+
+
+  - name: stg_ecommerce__order_items
+    description: "Standardized order item data for analytical consumption."
+
+    columns:
+      - name: order_item_id
+        description: "Unique order item identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: "Identifier of the order containing the item."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: product_id
+        description: "Identifier of the product included in the order."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__products')
+                field: product_id
+
+      - name: quantity
+        description: "Quantity of the product ordered."
+        data_tests:
+          - not_null
+
+      - name: unit_price
+        description: "Product unit price recorded at the time of the order."
+        data_tests:
+          - not_null
+
+      - name: discount_amount
+        description: "Discount amount applied to the order item."
+        data_tests:
+          - not_null
+
+
+
+
+  - name: stg_ecommerce__payments
+    description: "Standardized payment attempt data for analytical consumption."
+
+    columns:
+      - name: payment_id
+        description: "Unique payment attempt identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: payment_reference
+        description: "Unique business reference assigned to the payment attempt."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: "Identifier of the order associated with the payment."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: attempt_number
+        description: "Sequential payment attempt number for the order."
+        data_tests:
+          - not_null
+
+      - name: payment_status
+        description: "Current payment attempt status."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - approved
+                  - declined
+                  - pending
+
+      - name: payment_method
+        description: "Payment method selected for the attempt."
+        data_tests:
+          - not_null
+
+      - name: amount
+        description: "Payment amount associated with the attempt."
+        data_tests:
+          - not_null
+
+      - name: created_at
+        description: "Timestamp when the payment attempt was created."
+        data_tests:
+          - not_null
+
+      - name: approved_at
+        description: "Timestamp when the payment was approved, when applicable."
+
+
+
+
+  - name: stg_ecommerce__shipments
+    description: "Standardized shipment data for analytical consumption."
+
+    columns:
+      - name: shipment_id
+        description: "Unique shipment identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: shipment_number
+        description: "Unique business number assigned to the shipment."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: "Identifier of the order associated with the shipment."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: carrier_id
+        description: "Identifier of the carrier responsible for the shipment."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__carriers')
+                field: carrier_id
+
+      - name: shipment_status
+        description: "Current shipment lifecycle status."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - created
+                  - shipped
+                  - in_transit
+                  - delivered
+                  - failed
+
+      - name: delivery_attempts
+        description: "Number of delivery attempts made for the shipment."
+        data_tests:
+          - not_null
+
+      - name: shipped_at
+        description: "Timestamp when the shipment was dispatched."
+
+      - name: in_transit_at
+        description: "Timestamp when the shipment entered transit."
+
+      - name: delivered_at
+        description: "Timestamp when the shipment was delivered."              
+
+
+
+
+  - name: stg_ecommerce__shipment_items
+    description: "Standardized shipment item data for analytical consumption."
+
+    columns:
+      - name: shipment_item_id
+        description: "Unique shipment item identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: shipment_id
+        description: "Identifier of the shipment containing the item."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__shipments')
+                field: shipment_id
+
+      - name: order_item_id
+        description: "Identifier of the original order item."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__order_items')
+                field: order_item_id
+
+      - name: quantity_shipped
+        description: "Quantity of the order item included in the shipment."
+        data_tests:
+          - not_null
+
+      - name: quantity_delivered
+        description: "Quantity of the shipment item successfully delivered."
+        data_tests:
+          - not_null 
+
+
+
+
+  - name: stg_ecommerce__order_events
+    description: "Standardized order lifecycle event data for analytical consumption."
+
+    columns:
+      - name: event_record_id
+        description: "Unique database record identifier for the event."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: event_id
+        description: "Unique business identifier assigned to the event."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: "Identifier of the order associated with the event."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: event_type
+        description: "Type of order lifecycle event."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - order_created
+                  - payment_approved
+                  - order_allocated
+                  - picking_started
+                  - picking_completed
+                  - order_packed
+                  - order_shipped
+                  - in_transit
+                  - delivery_attempted
+                  - order_delivered
+                  - order_cancelled
+
+      - name: event_time
+        description: "Timestamp when the event occurred in the source system."
+        data_tests:
+          - not_null
+
+      - name: received_at
+        description: "Timestamp when the event was received by the data platform."
+        data_tests:
+          - not_null
+
+      - name: source_system
+        description: "Operational system that produced the event."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - erp
+                  - payment
+                  - wms
+                  - tms
+
+      - name: event_payload
+        description: "Original event payload stored as JSON."
+        data_tests:
+          - not_null              
