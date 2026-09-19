@@ -224,4 +224,65 @@ models:
       - name: is_cancelled
         description: Indicates whether the order was cancelled.
         data_tests:
-          - not_null       
+          - not_null  
+
+
+
+
+  - name: int_order_fulfillment
+    description: >
+      Compares ordered, shipped, and delivered quantities for each order
+      and calculates fulfillment, on-time, and OTIF indicators.
+
+    columns:
+      - name: order_id
+        description: Unique identifier of the order.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: ordered_quantity
+        description: Total quantity ordered.
+        data_tests:
+          - not_null
+
+      - name: shipped_quantity
+        description: Total quantity shipped.
+        data_tests:
+          - not_null
+
+      - name: delivered_quantity
+        description: Total quantity delivered.
+        data_tests:
+          - not_null
+
+      - name: unfulfilled_quantity
+        description: Quantity that has not been delivered.
+        data_tests:
+          - not_null
+
+      - name: fulfillment_rate_percentage
+        description: Percentage of the ordered quantity that was delivered.
+
+      - name: is_fully_shipped
+        description: Indicates whether the complete order was shipped.
+        data_tests:
+          - not_null
+
+      - name: has_partial_delivery
+        description: Indicates whether the order was partially delivered.
+        data_tests:
+          - not_null
+
+      - name: is_in_full
+        description: Indicates whether a delivered order was delivered completely.
+
+      - name: is_on_time
+        description: Indicates whether a delivered order met its promised date.
+
+      - name: is_otif
+        description: Indicates whether an order was delivered on time and in full.              
