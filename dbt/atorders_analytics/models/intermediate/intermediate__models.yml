@@ -351,4 +351,58 @@ models:
       - name: total_weight_kg
         description: Total item weight based on quantity.
         data_tests:
-          - not_null        
+          - not_null    
+
+
+
+
+  - name: int_order_payment_summary
+    description: >
+      Summarizes payment attempts into one row per order and identifies
+      the latest payment status and whether payment was approved.
+
+    columns:
+      - name: order_id
+        description: Unique identifier of the order.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: payment_attempt_count
+        description: Total number of payment attempts.
+        data_tests:
+          - not_null
+
+      - name: declined_attempt_count
+        description: Number of declined payment attempts.
+        data_tests:
+          - not_null
+
+      - name: latest_payment_reference
+        description: Reference of the latest payment attempt.
+        data_tests:
+          - not_null
+
+      - name: latest_payment_status
+        description: Status of the latest payment attempt.
+        data_tests:
+          - not_null
+
+      - name: latest_payment_method
+        description: Method used in the latest payment attempt.
+        data_tests:
+          - not_null
+
+      - name: latest_payment_amount
+        description: Amount of the latest payment attempt.
+        data_tests:
+          - not_null
+
+      - name: has_approved_payment
+        description: Indicates whether the order has an approved payment.
+        data_tests:
+          - not_null
