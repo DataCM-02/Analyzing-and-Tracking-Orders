@@ -1,0 +1,227 @@
+version: 2
+
+models:
+  - name: int_order_event_sequence
+    description: >
+      Orders the events of each order chronologically and calculates
+      navigation fields, elapsed time between events, and ingestion delay.
+
+    columns:
+      - name: event_record_id
+        description: Unique identifier of the event record.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: event_id
+        description: Business identifier of the event.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: Identifier of the order associated with the event.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: event_type
+        description: Type of event in the order lifecycle.
+        data_tests:
+          - not_null
+
+      - name: event_time
+        description: Timestamp when the event occurred.
+        data_tests:
+          - not_null
+
+      - name: received_at
+        description: Timestamp when the event was received by the platform.
+        data_tests:
+          - not_null
+
+      - name: source_system
+        description: System that generated the event.
+        data_tests:
+          - not_null
+
+      - name: event_sequence_number
+        description: Chronological position of the event within the order.
+        data_tests:
+          - not_null
+
+      - name: previous_event_type
+        description: Previous event type for the same order.
+
+      - name: previous_event_time
+        description: Timestamp of the previous event for the same order.
+
+      - name: next_event_type
+        description: Next event type for the same order.
+
+      - name: next_event_time
+        description: Timestamp of the next event for the same order.
+
+      - name: hours_since_previous_event
+        description: Hours elapsed since the previous event.
+
+      - name: ingestion_delay_minutes
+        description: Minutes elapsed between event occurrence and ingestion.
+
+
+
+
+  - name: int_order_milestones
+    description: >
+      Consolidates the order event history into one row per order,
+      with the main lifecycle milestones represented as columns.
+
+    columns:
+      - name: order_id
+        description: Unique identifier of the order.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: first_event_at
+        description: Timestamp of the first recorded order event.
+        data_tests:
+          - not_null
+
+      - name: last_event_at
+        description: Timestamp of the latest recorded order event.
+        data_tests:
+          - not_null
+
+      - name: event_count
+        description: Total number of events recorded for the order.
+        data_tests:
+          - not_null
+
+      - name: order_created_at
+        description: Timestamp when the order was created.
+        data_tests:
+          - not_null
+
+      - name: payment_approved_at
+        description: Timestamp when payment was approved.
+
+      - name: order_allocated_at
+        description: Timestamp when the order was allocated to a warehouse.
+
+      - name: picking_started_at
+        description: Timestamp when the picking process started.
+
+      - name: picking_completed_at
+        description: Timestamp when the picking process was completed.
+
+      - name: order_packed_at
+        description: Timestamp when the order was packed.
+
+      - name: order_shipped_at
+        description: Timestamp when the order was shipped.
+
+      - name: in_transit_at
+        description: Timestamp when the order entered transit.
+
+      - name: first_delivery_attempt_at
+        description: Timestamp of the first delivery attempt.
+
+      - name: last_delivery_attempt_at
+        description: Timestamp of the latest delivery attempt.
+
+      - name: delivery_attempt_count
+        description: Number of delivery attempts recorded for the order.
+        data_tests:
+          - not_null
+
+      - name: order_delivered_at
+        description: Timestamp when the order was delivered.
+
+      - name: order_cancelled_at
+        description: Timestamp when the order was cancelled.    
+
+
+
+
+  - name: int_order_lifecycle
+    description: >
+      Represents the complete lifecycle of each order, including its
+      milestones, stage durations, current stage, and delay indicators.
+
+    columns:
+      - name: order_id
+        description: Unique identifier of the order.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_number
+        description: Business identifier of the order.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: current_stage
+        description: Current operational stage of the order.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - created
+                  - payment_pending
+                  - paid
+                  - allocated
+                  - picking
+                  - picked
+                  - packed
+                  - shipped
+                  - in_transit
+                  - delivered
+                  - cancelled
+
+      - name: promised_delivery_at
+        description: Timestamp promised to the customer for delivery.
+        data_tests:
+          - not_null
+
+      - name: order_created_at
+        description: Timestamp when the order lifecycle started.
+        data_tests:
+          - not_null
+
+      - name: current_stage_started_at
+        description: Timestamp when the current stage started.
+        data_tests:
+          - not_null
+
+      - name: event_count
+        description: Total number of events associated with the order.
+        data_tests:
+          - not_null
+
+      - name: total_cycle_hours
+        description: Total elapsed hours since order creation.
+        data_tests:
+          - not_null
+
+      - name: is_late
+        description: Indicates whether the order was or currently is late.
+
+      - name: is_completed
+        description: Indicates whether the order was delivered.
+        data_tests:
+          - not_null
+
+      - name: is_cancelled
+        description: Indicates whether the order was cancelled.
+        data_tests:
+          - not_null       
