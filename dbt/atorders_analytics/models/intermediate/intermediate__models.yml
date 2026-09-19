@@ -286,3 +286,69 @@ models:
 
       - name: is_otif
         description: Indicates whether an order was delivered on time and in full.              
+
+
+
+
+  - name: int_order_items_enriched
+    description: >
+      Enriches order items with product and order attributes and calculates
+      gross value, net value, discount percentage, and total weight.
+
+    columns:
+      - name: order_item_id
+        description: Unique identifier of the order item.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: Identifier of the related order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: product_id
+        description: Identifier of the related product.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__products')
+                field: product_id
+
+      - name: sku
+        description: Product stock keeping unit.
+        data_tests:
+          - not_null
+
+      - name: quantity
+        description: Quantity ordered.
+        data_tests:
+          - not_null
+
+      - name: sale_unit_price
+        description: Unit price recorded when the order was created.
+        data_tests:
+          - not_null
+
+      - name: gross_line_amount
+        description: Item value before discount.
+        data_tests:
+          - not_null
+
+      - name: net_line_amount
+        description: Item value after discount.
+        data_tests:
+          - not_null
+
+      - name: discount_percentage
+        description: Percentage discount applied to the item.
+
+      - name: total_weight_kg
+        description: Total item weight based on quantity.
+        data_tests:
+          - not_null        
