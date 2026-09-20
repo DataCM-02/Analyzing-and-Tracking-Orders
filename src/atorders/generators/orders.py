@@ -8,7 +8,8 @@ ORDER_COUNT = 25_000
 DEFAULT_SEED = 360
 
 ORDER_START = datetime(2025, 9, 1, tzinfo=UTC)
-ORDER_END = datetime(2026, 8, 31, 23, 59, 59, tzinfo=UTC)
+DATA_SNAPSHOT_AT = datetime(2026, 9, 1, tzinfo=UTC)
+ORDER_END = DATA_SNAPSHOT_AT - timedelta(seconds=1)
 
 MONEY_PRECISION = Decimal("0.01")
 
@@ -155,23 +156,33 @@ def build_order_records(
         tax_amount = _money(taxable_amount * Decimal("0.08"))
         total_amount = _money(taxable_amount + shipping_amount + tax_amount)
 
-        payment_status = randomizer.choices(
-            ("approved", "declined", "pending"),
-            weights=(94, 4, 2),
+        payment_outcome = randomizer.choices(
+            ("approved", "declined"),
+            weights=(96, 4),
             k=1,
         )[0]
 
-        payment_created_at = created_at + timedelta(minutes=randomizer.randint(1, 30))
+        payment_created_at = min(
+            created_at + timedelta(minutes=randomizer.randint(1, 30)),
+            DATA_SNAPSHOT_AT,
+        )
+        payment_resolved_at = payment_created_at + timedelta(
+            minutes=randomizer.randint(1, 360)
+        )
 
         approved_at = None
 
-        if payment_status == "approved":
-            approved_at = payment_created_at + timedelta(
-                minutes=randomizer.randint(1, 360)
-            )
+        if payment_resolved_at > DATA_SNAPSHOT_AT:
+            payment_status = "pending"
+            order_status = "payment_pending"
+            updated_at = payment_created_at
+        elif payment_outcome == "approved":
+            payment_status = "approved"
+            approved_at = payment_resolved_at
             order_status = "paid"
             updated_at = approved_at
         else:
+            payment_status = "declined"
             order_status = "payment_pending"
             updated_at = payment_created_at
 
@@ -311,7 +322,9 @@ def load_orders(
                     tax_amount = EXCLUDED.tax_amount,
                     total_amount = EXCLUDED.total_amount,
                     created_at = EXCLUDED.created_at,
-                    updated_at = EXCLUDED.updated_at
+                    updated_at = EXCLUDED.updated_at,
+                    cancelled_at = NULL,
+                    cancellation_reason = NULL
                 """,
                 orders,
             )

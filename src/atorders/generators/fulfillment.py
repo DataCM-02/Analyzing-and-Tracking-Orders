@@ -1,28 +1,17 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from random import Random
 from uuid import UUID, uuid5
 
 from psycopg.rows import dict_row
 
 from atorders.database import get_connection
+from atorders.generators.orders import DATA_SNAPSHOT_AT
 
 DEFAULT_SEED = 360
-DATA_SNAPSHOT_AT = datetime(2026, 9, 18, tzinfo=UTC)
 
 EVENT_NAMESPACE = UUID("271376dd-71d9-4d8e-b645-010699612437")
 
-FINAL_STATUSES = (
-    "delivered",
-    "in_transit",
-    "shipped",
-    "packed",
-    "picking",
-    "allocated",
-    "paid",
-    "cancelled",
-)
-
-FINAL_STATUS_WEIGHTS = (850, 40, 20, 15, 20, 10, 10, 35)
+CUSTOMER_CANCELLATION_RATE = 0.035
 
 SERVICE_FACTORS = {
     "standard": 1.00,
@@ -151,9 +140,12 @@ def build_fulfillment_records(
             continue
 
         if payment_status == "declined":
-            cancelled_at = _add_hours(
-                payment_created_at,
-                randomizer.uniform(1, 12),
+            cancelled_at = min(
+                _add_hours(
+                    payment_created_at,
+                    randomizer.uniform(1, 12),
+                ),
+                DATA_SNAPSHOT_AT,
             )
 
             events.append(
@@ -192,36 +184,42 @@ def build_fulfillment_records(
         )
         sequence += 1
 
-        final_status = randomizer.choices(
-            FINAL_STATUSES,
-            weights=FINAL_STATUS_WEIGHTS,
-            k=1,
-        )[0]
-
-        if final_status == "cancelled":
+        if randomizer.random() < CUSTOMER_CANCELLATION_RATE:
             cancelled_at = _add_hours(
                 approved_at,
                 randomizer.uniform(1, 12),
             )
 
-            events.append(
-                _create_event(
-                    randomizer,
-                    order_id,
-                    order_number,
-                    "order_cancelled",
-                    cancelled_at,
-                    sequence,
+            if cancelled_at <= DATA_SNAPSHOT_AT:
+                events.append(
+                    _create_event(
+                        randomizer,
+                        order_id,
+                        order_number,
+                        "order_cancelled",
+                        cancelled_at,
+                        sequence,
+                    )
                 )
-            )
+
+                order_updates.append(
+                    {
+                        "order_id": order_id,
+                        "order_status": "cancelled",
+                        "updated_at": cancelled_at,
+                        "cancelled_at": cancelled_at,
+                        "cancellation_reason": "customer_request",
+                    }
+                )
+                continue
 
             order_updates.append(
                 {
                     "order_id": order_id,
-                    "order_status": "cancelled",
-                    "updated_at": cancelled_at,
-                    "cancelled_at": cancelled_at,
-                    "cancellation_reason": "customer_request",
+                    "order_status": "paid",
+                    "updated_at": approved_at,
+                    "cancelled_at": None,
+                    "cancellation_reason": None,
                 }
             )
             continue
@@ -261,7 +259,10 @@ def build_fulfillment_records(
         )
         packed_at = _add_hours(
             picking_completed_at,
-            randomizer.uniform(0.5, 6) * service_factor * delay_factor * packing_factor,
+            randomizer.uniform(0.5, 6)
+            * service_factor
+            * delay_factor
+            * packing_factor,
         )
         shipped_at = _add_hours(
             packed_at,
@@ -317,24 +318,26 @@ def build_fulfillment_records(
             ),
         )
 
-        final_status_rank = {
+        status_ranks = {
             "paid": 0,
             "allocated": 1,
             "picking": 2,
+            "picked": 3,
             "packed": 4,
             "shipped": 5,
             "in_transit": 6,
             "delivered": 7,
-        }[final_status]
+        }
 
+        final_status = "paid"
         last_event_at = approved_at
 
-        for rank, (
-            _,
+        for (
+            stage_status,
             event_type,
             event_time,
-        ) in enumerate(stage_events, start=1):
-            if rank > final_status_rank:
+        ) in stage_events:
+            if event_time > DATA_SNAPSHOT_AT:
                 break
 
             events.append(
@@ -348,7 +351,10 @@ def build_fulfillment_records(
                 )
             )
             sequence += 1
+            final_status = stage_status
             last_event_at = event_time
+
+        final_status_rank = status_ranks[final_status]
 
         order_updates.append(
             {
@@ -442,6 +448,16 @@ def load_fulfillment(
                 orders=orders,
                 carriers=carriers,
                 seed=seed,
+            )
+
+            cursor.execute(
+                """
+                TRUNCATE TABLE
+                    ecommerce.shipment_items,
+                    ecommerce.shipments,
+                    ecommerce.order_events
+                RESTART IDENTITY
+                """
             )
 
             cursor.executemany(
