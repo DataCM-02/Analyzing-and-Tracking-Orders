@@ -603,3 +603,147 @@ models:
         description: Critical threshold calculated as 1.25 times the average duration.
         data_tests:
           - not_null
+
+
+
+
+  - name: int_analysis_clock
+    description: >
+      Provides the reproducible analytical timestamp used as the current
+      time for the synthetic dataset.
+    columns:
+      - name: analysis_timestamp
+        description: Latest event reception timestamp available in the source.
+        data_tests:
+          - not_null
+          - unique
+
+  - name: int_order_stage_monitoring
+    description: >
+      Represents each active order in its current operational stage,
+      comparing its stage aging with the historical benchmark and assigning
+      an operational signal.
+    columns:
+      - name: order_id
+        description: Unique identifier of the active order.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: order_number
+        description: Business identifier used to search for the order.
+        data_tests:
+          - not_null
+
+      - name: service_level
+        description: Service level used to select the corresponding benchmark.
+        data_tests:
+          - not_null
+
+      - name: promised_delivery_at
+        description: Promised delivery timestamp.
+        data_tests:
+          - not_null
+
+      - name: stage_code
+        description: Standardized code of the current stage.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - entry
+                  - payment
+                  - preparation
+                  - dispatch
+                  - transport
+
+      - name: stage_name
+        description: Business-friendly name of the current stage.
+        data_tests:
+          - not_null
+
+      - name: stage_started_at
+        description: Timestamp when the order entered its current stage.
+        data_tests:
+          - not_null
+
+      - name: stage_age_hours
+        description: Number of hours spent in the current stage.
+        data_tests:
+          - not_null
+
+      - name: analysis_timestamp
+        description: Reproducible timestamp used as the analytical current time.
+        data_tests:
+          - not_null
+
+      - name: average_duration_hours
+        description: Historical average duration for the stage and service level.
+        data_tests:
+          - not_null
+
+      - name: critical_threshold_hours
+        description: Critical threshold calculated as 1.25 times the average.
+        data_tests:
+          - not_null
+
+      - name: stage_variance_hours
+        description: Difference between current aging and historical average.
+        data_tests:
+          - not_null
+
+      - name: hours_until_promised_delivery
+        description: Remaining hours until the promised delivery timestamp.
+        data_tests:
+          - not_null
+
+      - name: is_late
+        description: Indicates whether the promised delivery timestamp has passed.
+        data_tests:
+          - not_null
+
+      - name: is_above_average
+        description: Indicates whether current aging is above the historical average.
+        data_tests:
+          - not_null
+
+      - name: is_above_critical_threshold
+        description: Indicates whether current aging is above the critical threshold.
+        data_tests:
+          - not_null
+
+      - name: stage_signal
+        description: Operational signal assigned to the active order.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - green
+                  - yellow
+                  - red
+
+      - name: signal_reason
+        description: Rule responsible for the operational signal.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - within_average
+                  - stage_above_average
+                  - stage_above_critical_threshold
+                  - promised_delivery_overdue
+
+      - name: signal_priority
+        description: Numerical priority used to sort red, yellow and green orders.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3]          

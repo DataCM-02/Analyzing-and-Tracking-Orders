@@ -1,6 +1,15 @@
 {{ config(materialized='view') }}
 
-with orders as (
+with analysis_clock as (
+
+    select
+        analysis_timestamp
+
+    from {{ ref('int_analysis_clock') }}
+
+),
+
+orders as (
 
     select
         lifecycle.order_id,
@@ -119,10 +128,10 @@ started_stages as (
 
     where stage_started_at is not null
 
-        and (
-            order_cancelled_at is null
-            or stage_started_at <= order_cancelled_at
-        )
+      and (
+          order_cancelled_at is null
+          or stage_started_at <= order_cancelled_at
+      )
 
 ),
 
@@ -144,27 +153,28 @@ resolved_stages as (
 final as (
 
     select
-        order_id,
-        order_number,
-        customer_id,
-        warehouse_id,
-        service_level,
-        promised_delivery_at,
-        order_current_stage,
+        resolved_stages.order_id,
+        resolved_stages.order_number,
+        resolved_stages.customer_id,
+        resolved_stages.warehouse_id,
+        resolved_stages.service_level,
+        resolved_stages.promised_delivery_at,
+        resolved_stages.order_current_stage,
 
-        stage_sequence,
-        stage_code,
-        stage_name,
-        stage_started_at,
-        stage_finished_at,
+        resolved_stages.stage_sequence,
+        resolved_stages.stage_code,
+        resolved_stages.stage_name,
+        resolved_stages.stage_started_at,
+        resolved_stages.stage_finished_at,
 
         case
-            when stage_finished_at is not null
+            when resolved_stages.stage_finished_at is not null
                 then round(
                     (
                         extract(
                             epoch from (
-                                stage_finished_at - stage_started_at
+                                resolved_stages.stage_finished_at
+                                - resolved_stages.stage_started_at
                             )
                         ) / 3600.0
                     )::numeric,
@@ -173,12 +183,13 @@ final as (
         end as stage_duration_hours,
 
         case
-            when stage_finished_at is null
+            when resolved_stages.stage_finished_at is null
                 then round(
                     (
                         extract(
                             epoch from (
-                                current_timestamp - stage_started_at
+                                analysis_clock.analysis_timestamp
+                                - resolved_stages.stage_started_at
                             )
                         ) / 3600.0
                     )::numeric,
@@ -187,30 +198,33 @@ final as (
         end as stage_age_hours,
 
         case
-            when is_cancelled_in_stage
+            when resolved_stages.is_cancelled_in_stage
                 then 'cancelled'
-            when stage_finished_at is null
+
+            when resolved_stages.stage_finished_at is null
                 then 'current'
+
             else 'completed'
         end as stage_status,
 
         (
-            stage_finished_at is not null
-            and not is_cancelled_in_stage
+            resolved_stages.stage_finished_at is not null
+            and not resolved_stages.is_cancelled_in_stage
         ) as is_completed_stage,
 
         (
-            stage_finished_at is null
-            and not is_cancelled_in_stage
+            resolved_stages.stage_finished_at is null
+            and not resolved_stages.is_cancelled_in_stage
         ) as is_current_stage,
 
-        is_cancelled_in_stage,
-        is_late,
-
-        order_delivered_at,
-        order_cancelled_at
+        resolved_stages.is_cancelled_in_stage,
+        resolved_stages.is_late,
+        resolved_stages.order_delivered_at,
+        resolved_stages.order_cancelled_at
 
     from resolved_stages
+
+    cross join analysis_clock
 
 )
 
