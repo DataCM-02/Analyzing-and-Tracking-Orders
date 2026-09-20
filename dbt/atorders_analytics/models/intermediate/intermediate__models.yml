@@ -528,3 +528,78 @@ models:
 
       - name: order_cancelled_at
         description: Timestamp when the order was cancelled.
+
+
+
+
+  - name: int_stage_benchmarks
+    description: >
+      Historical duration benchmarks for completed operational stages,
+      grouped by stage and service level.
+    columns:
+      - name: stage_sequence
+        description: Numerical position of the stage in the order flow.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+
+      - name: stage_code
+        description: Standardized stage identifier.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - entry
+                  - payment
+                  - preparation
+                  - dispatch
+                  - transport
+
+      - name: stage_name
+        description: Business-friendly stage name.
+        data_tests:
+          - not_null
+
+      - name: service_level
+        description: Service level used to segment the benchmark.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - standard
+                  - express
+                  - priority
+
+      - name: completed_stage_count
+        description: Number of completed stages used in the calculation.
+        data_tests:
+          - not_null
+
+      - name: average_duration_hours
+        description: Average historical duration of the stage in hours.
+        data_tests:
+          - not_null
+
+      - name: median_duration_hours
+        description: Median historical duration of the stage in hours.
+        data_tests:
+          - not_null
+
+      - name: p75_duration_hours
+        description: Duration within which 75 percent of stages were completed.
+        data_tests:
+          - not_null
+
+      - name: p90_duration_hours
+        description: Duration within which 90 percent of stages were completed.
+        data_tests:
+          - not_null
+
+      - name: critical_threshold_hours
+        description: Critical threshold calculated as 1.25 times the average duration.
+        data_tests:
+          - not_null
