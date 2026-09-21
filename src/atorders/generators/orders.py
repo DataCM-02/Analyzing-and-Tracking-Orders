@@ -275,6 +275,19 @@ def load_orders(
                 count=count,
                 seed=seed,
             )
+            # Rebuild synthetic transactional data from a clean state.
+            cursor.execute(
+                """
+                TRUNCATE TABLE
+                    ecommerce.order_events,
+                    ecommerce.shipment_items,
+                    ecommerce.shipments,
+                    ecommerce.payments,
+                    ecommerce.order_items,
+                    ecommerce.orders
+                RESTART IDENTITY
+                """
+            )
 
             cursor.executemany(
                 """
