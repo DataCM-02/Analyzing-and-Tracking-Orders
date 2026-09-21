@@ -1,0 +1,294 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: >
+      Calendar dimension used to analyze operational metrics across
+      creation, payment, shipment, promised delivery and actual delivery dates.
+      The grain is one row per calendar date.
+
+    columns:
+      - name: date_key
+        description: Integer date identifier in YYYYMMDD format.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: date_day
+        description: Calendar date represented by the row.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: year_number
+        description: Calendar year number.
+        data_tests:
+          - not_null
+
+      - name: quarter_number
+        description: Calendar quarter number from 1 to 4.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4]
+
+      - name: quarter_name
+        description: Calendar quarter label.
+
+      - name: month_number
+        description: Calendar month number from 1 to 12.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+      - name: month_name
+        description: English calendar month name.
+        data_tests:
+          - not_null
+
+      - name: year_month
+        description: Year and month identifier in YYYY-MM format.
+        data_tests:
+          - not_null
+
+      - name: week_of_year
+        description: ISO week number within the year.
+
+      - name: day_of_week_number
+        description: ISO weekday number where Monday is 1 and Sunday is 7.
+        data_tests:
+          - not_null
+
+      - name: day_of_week_name
+        description: English weekday name.
+        data_tests:
+          - not_null
+
+      - name: day_of_month
+        description: Day number within the month.
+
+      - name: is_weekend
+        description: Indicates whether the date is Saturday or Sunday.
+        data_tests:
+          - not_null
+
+
+
+
+  - name: dim_customer
+    description: >
+      Customer dimension used to analyze orders and operational performance
+      by customer, segment, status and geographic attributes.
+      The grain is one row per customer.
+
+    columns:
+      - name: customer_id
+        description: Unique identifier of the customer.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_code
+        description: Business code used to identify the customer.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_name
+        description: Customer display name.
+        data_tests:
+          - not_null
+
+      - name: customer_segment
+        description: Commercial segment assigned to the customer.
+        data_tests:
+          - not_null
+
+      - name: customer_status
+        description: Current customer registration status.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['active', 'inactive', 'blocked']
+
+      - name: is_active_customer
+        description: Indicates whether the customer is currently active.
+        data_tests:
+          - not_null
+
+      - name: city
+        description: Customer city.
+
+      - name: state_code
+        description: Two-character state code.
+        data_tests:
+          - not_null
+
+      - name: region
+        description: Geographic region assigned to the customer.
+        data_tests:
+          - not_null
+
+      - name: created_at
+        description: Timestamp when the customer record was created.
+
+      - name: updated_at
+        description: Timestamp of the most recent customer record update.          
+
+
+
+
+  - name: dim_product
+    description: >
+      Product dimension used to analyze operational and commercial metrics
+      by product and category. The grain is one row per product.
+
+    columns:
+      - name: product_id
+        description: Unique identifier of the product.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: sku
+        description: Stock keeping unit used to identify the product.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: product_name
+        description: Product display name.
+        data_tests:
+          - not_null
+
+      - name: product_category
+        description: Category assigned to the product.
+        data_tests:
+          - not_null
+
+      - name: unit_price
+        description: Current reference unit price of the product.
+        data_tests:
+          - not_null
+
+      - name: weight_kg
+        description: Product unit weight in kilograms.
+        data_tests:
+          - not_null
+
+      - name: product_status
+        description: Current product registration status.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['active', 'inactive']
+
+      - name: is_active_product
+        description: Indicates whether the product is currently active.
+        data_tests:
+          - not_null
+
+      - name: created_at
+        description: Timestamp when the product record was created.
+
+      - name: updated_at
+        description: Timestamp of the most recent product record update.
+
+
+
+
+  - name: dim_warehouse
+    description: >
+      Warehouse dimension used to analyze order volume, operational flow
+      and delivery performance by distribution center.
+      The grain is one row per warehouse.
+
+    columns:
+      - name: warehouse_id
+        description: Unique identifier of the warehouse.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: warehouse_code
+        description: Business code used to identify the warehouse.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: warehouse_name
+        description: Warehouse display name.
+        data_tests:
+          - not_null
+
+      - name: city
+        description: City where the warehouse is located.
+        data_tests:
+          - not_null
+
+      - name: state_code
+        description: Two-character state code of the warehouse.
+        data_tests:
+          - not_null
+
+      - name: region
+        description: Geographic region of the warehouse.
+        data_tests:
+          - not_null
+
+      - name: warehouse_status
+        description: Current warehouse registration status.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['active', 'inactive']
+
+      - name: is_active_warehouse
+        description: Indicates whether the warehouse is currently active.
+        data_tests:
+          - not_null     
+
+
+
+
+  - name: dim_carrier
+    description: >
+      Carrier dimension used to analyze shipment and delivery performance
+      by transportation provider. The grain is one row per carrier.
+
+    columns:
+      - name: carrier_id
+        description: Unique identifier of the carrier.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: carrier_code
+        description: Business code used to identify the carrier.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: carrier_name
+        description: Carrier display name.
+        data_tests:
+          - not_null
+
+      - name: carrier_status
+        description: Current carrier registration status.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['active', 'inactive']
+
+      - name: is_active_carrier
+        description: Indicates whether the carrier is currently active.
+        data_tests:
+          - not_null             
