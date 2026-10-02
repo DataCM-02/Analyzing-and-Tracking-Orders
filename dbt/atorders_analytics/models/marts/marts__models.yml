@@ -137,7 +137,7 @@ models:
         description: Timestamp when the customer record was created.
 
       - name: updated_at
-        description: Timestamp of the most recent customer record update.          
+        description: Timestamp of the most recent customer record update.
 
 
 
@@ -252,7 +252,7 @@ models:
       - name: is_active_warehouse
         description: Indicates whether the warehouse is currently active.
         data_tests:
-          - not_null     
+          - not_null
 
 
 
@@ -291,4 +291,858 @@ models:
       - name: is_active_carrier
         description: Indicates whether the carrier is currently active.
         data_tests:
-          - not_null             
+          - not_null
+
+
+
+
+  - name: fct_order
+    description: >
+      Order fact table containing financial values, operational status
+      and date references. The grain is one row per order.
+
+    columns:
+      - name: order_id
+        description: Unique identifier of the order.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_number
+        description: Business number used to identify the order.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_id
+        description: Customer associated with the order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_id
+
+      - name: warehouse_id
+        description: Warehouse responsible for fulfilling the order.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_warehouse')
+                field: warehouse_id
+
+      - name: order_date_key
+        description: Date key representing the order creation date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: promised_delivery_date_key
+        description: Date key representing the promised delivery date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: cancellation_date_key
+        description: Date key representing the cancellation date.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: order_status
+        description: Current operational status of the order.
+        data_tests:
+          - not_null
+
+      - name: service_level
+        description: Service level selected for the order.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['standard', 'express', 'priority']
+
+      - name: subtotal_amount
+        description: Gross merchandise value before discounts.
+        data_tests:
+          - not_null
+
+      - name: discount_amount
+        description: Discount amount applied to the order.
+        data_tests:
+          - not_null
+
+      - name: net_merchandise_amount
+        description: Merchandise value after discounts and before freight and taxes.
+        data_tests:
+          - not_null
+
+      - name: shipping_amount
+        description: Shipping amount charged for the order.
+        data_tests:
+          - not_null
+
+      - name: tax_amount
+        description: Tax amount charged for the order.
+        data_tests:
+          - not_null
+
+      - name: total_amount
+        description: Final monetary value of the order.
+        data_tests:
+          - not_null
+
+      - name: created_at
+        description: Timestamp when the order was created.
+        data_tests:
+          - not_null
+
+      - name: updated_at
+        description: Timestamp of the most recent order update.
+        data_tests:
+          - not_null
+
+      - name: promised_delivery_at
+        description: Timestamp by which the order was promised for delivery.
+        data_tests:
+          - not_null
+
+      - name: cancelled_at
+        description: Timestamp when the order was cancelled, when applicable.
+
+      - name: cancellation_reason
+        description: Reason provided for order cancellation.
+
+      - name: is_cancelled_order
+        description: Indicates whether the order is cancelled.
+        data_tests:
+          - not_null
+
+
+
+
+  - name: fct_order_item
+    description: >
+      Order item fact table containing quantities, prices, discounts and
+      product weight metrics. The grain is one row per order item.
+
+    columns:
+      - name: order_item_id
+        description: Unique identifier of the order item.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: Order associated with the item.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_order')
+                field: order_id
+
+      - name: order_number
+        description: Business number of the order.
+        data_tests:
+          - not_null
+
+      - name: customer_id
+        description: Customer associated with the order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_id
+
+      - name: warehouse_id
+        description: Warehouse responsible for the order.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_warehouse')
+                field: warehouse_id
+
+      - name: product_id
+        description: Product associated with the order item.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_product')
+                field: product_id
+
+      - name: order_date_key
+        description: Date key representing the order creation date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: order_status
+        description: Current status of the associated order.
+        data_tests:
+          - not_null
+
+      - name: service_level
+        description: Service level selected for the associated order.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['standard', 'express', 'priority']
+
+      - name: quantity
+        description: Number of product units in the order item.
+        data_tests:
+          - not_null
+
+      - name: sale_unit_price
+        description: Unit price applied when the order was created.
+        data_tests:
+          - not_null
+
+      - name: catalog_unit_price
+        description: Current reference price from the product catalog.
+        data_tests:
+          - not_null
+
+      - name: discount_amount
+        description: Discount amount applied to the order item.
+        data_tests:
+          - not_null
+
+      - name: gross_line_amount
+        description: Gross item value before discounts.
+        data_tests:
+          - not_null
+
+      - name: net_line_amount
+        description: Net item value after discounts.
+        data_tests:
+          - not_null
+
+      - name: discount_percentage
+        description: Percentage discount applied to the gross item value.
+        data_tests:
+          - not_null
+
+      - name: unit_price_variance
+        description: Difference between the sale price and the catalog price.
+        data_tests:
+          - not_null
+
+      - name: unit_weight_kg
+        description: Weight in kilograms of one product unit.
+        data_tests:
+          - not_null
+
+      - name: total_weight_kg
+        description: Total item weight based on quantity and unit weight.
+        data_tests:
+          - not_null
+
+      - name: is_cancelled_order
+        description: Indicates whether the associated order is cancelled.
+        data_tests:
+          - not_null
+
+
+
+
+  - name: fct_order_payment
+    description: >
+      Order-level payment fact containing attempt counts, latest payment
+      attributes, approval timing and order value reconciliation.
+      The grain is one row per order with a payment.
+
+    columns:
+      - name: order_id
+        description: Unique identifier of the associated order.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('fct_order')
+                field: order_id
+
+      - name: order_number
+        description: Business number of the associated order.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_id
+        description: Customer associated with the order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_id
+
+      - name: warehouse_id
+        description: Warehouse responsible for the order.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_warehouse')
+                field: warehouse_id
+
+      - name: order_date_key
+        description: Date key representing the order creation date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: first_payment_attempt_date_key
+        description: Date key of the first payment attempt.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: latest_payment_attempt_date_key
+        description: Date key of the latest payment attempt.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: payment_approved_date_key
+        description: Date key of payment approval when applicable.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: service_level
+        description: Service level selected for the order.
+        data_tests:
+          - not_null
+
+      - name: payment_attempt_count
+        description: Total number of payment attempts for the order.
+        data_tests:
+          - not_null
+
+      - name: declined_attempt_count
+        description: Number of declined payment attempts.
+        data_tests:
+          - not_null
+
+      - name: first_payment_attempt_at
+        description: Timestamp of the first payment attempt.
+        data_tests:
+          - not_null
+
+      - name: latest_payment_attempt_at
+        description: Timestamp of the latest payment attempt.
+        data_tests:
+          - not_null
+
+      - name: payment_approved_at
+        description: Timestamp when payment was approved, when applicable.
+
+      - name: latest_payment_reference
+        description: Reference of the latest payment attempt.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: latest_payment_status
+        description: Status of the latest payment attempt.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['approved', 'declined', 'pending']
+
+      - name: latest_payment_method
+        description: Method used in the latest payment attempt.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['credit_card', 'bank_transfer', 'invoice']
+
+      - name: latest_payment_amount
+        description: Amount of the latest payment attempt.
+        data_tests:
+          - not_null
+
+      - name: order_total_amount
+        description: Final monetary value of the associated order.
+        data_tests:
+          - not_null
+
+      - name: payment_amount_variance
+        description: Difference between the latest payment amount and order total.
+        data_tests:
+          - not_null
+
+      - name: payment_processing_hours
+        description: Hours between the first payment attempt and approval.
+
+      - name: has_approved_payment
+        description: Indicates whether the order has an approved payment.
+        data_tests:
+          - not_null
+
+      - name: is_payment_pending
+        description: Indicates whether the latest payment is pending.
+        data_tests:
+          - not_null
+
+      - name: is_payment_declined
+        description: Indicates whether the latest payment is declined.
+        data_tests:
+          - not_null
+
+
+
+
+  - name: fct_order_lifecycle
+    description: >
+      Accumulating snapshot of the order journey containing operational
+      milestones, stage durations and current state indicators.
+      The grain is one row per order.
+
+    columns:
+      - name: order_id
+        description: Unique identifier of the order.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('fct_order')
+                field: order_id
+
+      - name: order_number
+        description: Business number of the order.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_id
+        description: Customer associated with the order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_id
+
+      - name: warehouse_id
+        description: Warehouse responsible for fulfilling the order.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_warehouse')
+                field: warehouse_id
+
+      - name: order_date_key
+        description: Date key representing the order creation date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: promised_delivery_date_key
+        description: Date key representing the promised delivery date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: delivered_date_key
+        description: Date key representing the actual delivery date.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: cancellation_date_key
+        description: Date key representing the cancellation date.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: current_stage
+        description: Current operational stage of the order.
+        data_tests:
+          - not_null
+
+      - name: service_level
+        description: Service level selected for the order.
+        data_tests:
+          - not_null
+
+      - name: order_created_at
+        description: Timestamp when the order was created.
+        data_tests:
+          - not_null
+
+      - name: promised_delivery_at
+        description: Timestamp promised for delivery.
+        data_tests:
+          - not_null
+
+      - name: delivery_attempt_count
+        description: Number of delivery attempts registered for the order.
+        data_tests:
+          - not_null
+
+      - name: event_count
+        description: Number of operational events associated with the order.
+        data_tests:
+          - not_null
+
+      - name: current_stage_started_at
+        description: Timestamp when the current stage started.
+        data_tests:
+          - not_null
+
+      - name: total_cycle_hours
+        description: Total elapsed hours from order creation to its current endpoint.
+        data_tests:
+          - not_null
+
+      - name: current_stage_age_hours
+        description: Hours the active order has remained in its current stage.
+
+      - name: is_late
+        description: Indicates whether the order was or is overdue.
+
+      - name: is_completed
+        description: Indicates whether the order was delivered.
+        data_tests:
+          - not_null
+
+      - name: is_cancelled
+        description: Indicates whether the order was cancelled.
+        data_tests:
+          - not_null
+
+      - name: is_active_order
+        description: Indicates whether the order remains operationally active.
+        data_tests:
+          - not_null
+
+
+
+
+  - name: fct_order_stage
+    description: >
+      Order stage fact containing one row for each stage reached by an order.
+      It supports stage flow, duration, aging and cancellation analysis.
+      The grain is one row per order and stage.
+
+    columns:
+      - name: order_stage_key
+        description: Deterministic key generated from order and stage.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: Identifier of the associated order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_order')
+                field: order_id
+
+      - name: order_number
+        description: Business number of the associated order.
+        data_tests:
+          - not_null
+
+      - name: customer_id
+        description: Customer associated with the order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_id
+
+      - name: warehouse_id
+        description: Warehouse responsible for the order.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_warehouse')
+                field: warehouse_id
+
+      - name: stage_started_date_key
+        description: Date key representing the stage start date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: stage_finished_date_key
+        description: Date key representing the stage completion date.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: promised_delivery_date_key
+        description: Date key representing the promised delivery date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: service_level
+        description: Service level selected for the order.
+        data_tests:
+          - not_null
+
+      - name: order_current_stage
+        description: Current operational stage of the order.
+        data_tests:
+          - not_null
+
+      - name: stage_sequence
+        description: Numeric position of the stage in the macro flow.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6]
+
+      - name: stage_code
+        description: Standardized code of the macro stage.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - entry
+                  - payment
+                  - preparation
+                  - dispatch
+                  - transport
+                  - delivery
+
+      - name: stage_name
+        description: Display name of the macro stage.
+        data_tests:
+          - not_null
+
+      - name: stage_status
+        description: Current status of the order within the stage.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['completed', 'current', 'cancelled']
+
+      - name: stage_started_at
+        description: Timestamp when the stage started.
+        data_tests:
+          - not_null
+
+      - name: stage_finished_at
+        description: Timestamp when the stage finished, when applicable.
+
+      - name: stage_duration_hours
+        description: Duration of a completed stage in hours.
+
+      - name: stage_age_hours
+        description: Current age of an unfinished stage in hours.
+
+      - name: is_completed_stage
+        description: Indicates whether the stage was completed.
+        data_tests:
+          - not_null
+
+      - name: is_current_stage
+        description: Indicates whether this is the current stage of the order.
+        data_tests:
+          - not_null
+
+      - name: is_cancelled_in_stage
+        description: Indicates whether the order was cancelled in this stage.
+        data_tests:
+          - not_null
+
+      - name: is_late
+        description: Indicates whether the order was or is overdue.
+
+
+
+
+  - name: fct_shipment
+    description: >
+      Shipment fact containing delivery quantities, timestamps and OTIF
+      indicators. The grain is one row per shipment.
+
+    columns:
+      - name: shipment_id
+        description: Unique identifier of the shipment.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: shipment_number
+        description: Business number of the shipment.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: Order associated with the shipment.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_order')
+                field: order_id
+
+      - name: order_number
+        description: Business number of the associated order.
+        data_tests:
+          - not_null
+
+      - name: customer_id
+        description: Customer associated with the shipment.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_id
+
+      - name: warehouse_id
+        description: Warehouse responsible for the shipment.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_warehouse')
+                field: warehouse_id
+
+      - name: carrier_id
+        description: Carrier responsible for the shipment.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_carrier')
+                field: carrier_id
+
+      - name: order_date_key
+        description: Date key representing the order creation date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: delivered_date_key
+        description: Date key representing the delivery date.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: promised_delivery_date_key
+        description: Date key representing the promised delivery date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: shipment_status
+        description: Current shipment status.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['created', 'shipped', 'in_transit', 'delivered', 'failed']
+
+      - name: delivery_attempts
+        description: Number of delivery attempts.
+        data_tests:
+          - not_null
+
+      - name: shipment_item_count
+        description: Number of order items included in the shipment.
+        data_tests:
+          - not_null
+
+      - name: quantity_shipped
+        description: Total quantity shipped.
+        data_tests:
+          - not_null
+
+      - name: quantity_delivered
+        description: Total quantity delivered.
+        data_tests:
+          - not_null
+
+      - name: undelivered_quantity
+        description: Difference between shipped and delivered quantities.
+        data_tests:
+          - not_null
+
+      - name: delivery_cycle_hours
+        description: Hours between shipment and delivery.
+
+      - name: is_delivered
+        description: Indicates whether the shipment was delivered.
+        data_tests:
+          - not_null
+
+      - name: is_on_time_delivery
+        description: Indicates whether a delivered shipment met its promised date.
+
+      - name: is_in_full_delivery
+        description: Indicates whether all shipped units were delivered.
+
+      - name: is_partial_delivery
+        description: Indicates whether a delivered shipment was partially delivered.
+
+      - name: is_otif
+        description: Indicates whether the shipment was delivered on time and in full.
