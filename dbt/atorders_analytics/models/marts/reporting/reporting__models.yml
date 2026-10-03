@@ -1,0 +1,162 @@
+version: 2
+
+models:
+  - name: mart_control_tower
+    description: >
+      Operational reporting mart designed for the Power BI Control Tower.
+      Contains one row per order, representing its current, cancellation,
+      or completed delivery stage.
+
+    columns:
+      - name: order_id
+        description: Primary identifier of the order.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('fct_order')
+                field: order_id
+
+      - name: order_number
+        description: Business identifier of the order.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_id
+        description: Identifier of the customer associated with the order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_id
+
+      - name: customer_name
+        description: Customer name displayed in operational reporting.
+        data_tests:
+          - not_null
+
+      - name: warehouse_id
+        description: Identifier of the warehouse responsible for the order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_warehouse')
+                field: warehouse_id
+
+      - name: warehouse_name
+        description: Name of the warehouse responsible for the order.
+        data_tests:
+          - not_null
+
+      - name: order_status
+        description: Current transactional status of the order.
+        data_tests:
+          - not_null
+
+      - name: flow_status
+        description: >
+          Simplified order classification used by the Control Tower:
+          active, cancelled, or delivered.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - active
+                  - cancelled
+                  - delivered
+
+      - name: stage_sequence
+        description: Numeric position of the operational stage.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6]
+
+      - name: stage_code
+        description: Technical code of the representative operational stage.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - entry
+                  - payment
+                  - preparation
+                  - dispatch
+                  - transport
+                  - delivery
+
+      - name: stage_name
+        description: Business-facing name of the operational stage.
+        data_tests:
+          - not_null
+
+      - name: stage_elapsed_hours
+        description: >
+          Hours elapsed in the current stage or total duration of the
+          representative closed stage.
+
+      - name: stage_signal
+        description: >
+          Operational traffic-light signal for active orders. Closed orders
+          may contain null because they no longer require active monitoring.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - green
+                  - yellow
+                  - red
+
+      - name: requires_attention
+        description: Indicates whether the order exceeded the critical threshold.
+        data_tests:
+          - not_null
+
+      - name: is_late
+        description: Indicates whether the order exceeded its promised delivery time.
+        data_tests:
+          - not_null
+
+      - name: total_amount
+        description: Final monetary amount of the order.
+        data_tests:
+          - not_null
+
+      - name: order_count
+        description: Additive counter used to count orders in BI tools.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1]
+
+      - name: active_order_count
+        description: Additive counter for active orders.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+
+      - name: cancelled_order_count
+        description: Additive counter for cancelled orders.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+
+      - name: delivered_order_count
+        description: Additive counter for delivered orders.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
