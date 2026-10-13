@@ -50,11 +50,11 @@ As linhagens (diagramas) abaixo mostram quais modelos do dbt alimentam cada tabe
 
 ### Mart_Control_Tower
 
-![alt text](docs\images\image.png)
+![mart_control_tower](docs/images/image.png)
 
 ### Mart_Execuitve_Order_Flow
 
-![alt text](docs\images\image2.png)
+![mart_executive_order_flow](docs/images/image2.png)
 
 ## Modelagem e qualidade dos dados
 
