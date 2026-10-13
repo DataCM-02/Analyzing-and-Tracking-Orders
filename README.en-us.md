@@ -1,12 +1,12 @@
 # AT-orders — Analyzing and Tracking Orders
 
-## Visão geral
+## Overview
 
 I created AT-orders to analyze the e-commerce order journey, from creation to delivery. I generated synthetic data with Python, simulating information that could come from systems such as ERP, CRM, WMS, and TMS. I stored the data in PostgreSQL and used dbt to transform it into analytical models, document tests, and validate data quality.
 
 In Power BI, I built two pages: Executive Overview, to monitor the overall flow, and Control Tower, to investigate orders that need attention.
 
-## Contexto e perguntas de negócio
+## Context and Businesss Questions
 
 In a sales operation, tracking an order involves several stages and pieces of operational information. A consolidated flow view can help show where orders are and which situations need follow-up.
 
