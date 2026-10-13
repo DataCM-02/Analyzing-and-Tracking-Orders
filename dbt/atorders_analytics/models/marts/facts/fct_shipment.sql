@@ -36,6 +36,7 @@ orders as (
         order_number,
         customer_id,
         warehouse_id,
+        service_level,
         promised_delivery_at,
         created_at as order_created_at
 
@@ -52,6 +53,7 @@ select
 
     o.customer_id,
     o.warehouse_id,
+    o.service_level,
     s.carrier_id,
 
     to_char(o.order_created_at, 'YYYYMMDD')::integer

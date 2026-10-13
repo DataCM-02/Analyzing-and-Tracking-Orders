@@ -1,242 +1,167 @@
-# ATOrders
+# AT-orders — Analyzing and Tracking Orders
 
-> Order Analytics & Tracking
+## Visão geral
 
-Projeto de Analytics Engineering para acompanhar o ciclo de vida de pedidos, identificar gargalos operacionais, medir níveis de serviço e priorizar pedidos que exigem intervenção.
+Criei o **AT-orders** para analisar a jornada de pedidos de e-commerce, da criação à entrega. Gerei dados sintéticos com Python, simulando informações que poderiam vir de sistemas como ERP, CRM, WMS e TMS. Armazenei os dados no PostgreSQL e usei o dbt para transformá-los em modelos analíticos, documentar os testes e validar a qualidade dos dados.
 
-> Status: planejamento e definição do domínio.
+No Power BI, desenvolvi duas páginas: **Visão Executiva**, para acompanhar o fluxo geral, e **Control Tower**, para investigar pedidos que precisam de atenção.
 
-## Contexto
+## Contexto e perguntas de negócio
 
-O ATOrders representa o ambiente analítico de uma distribuidora B2B fictícia com múltiplos centros de distribuição, clientes em diferentes regiões e pedidos atendidos por diferentes transportadoras.
+Em uma operação de vendas, acompanhar um pedido envolve diferentes etapas e informações operacionais. Uma visão consolidada em fluxo pode ajudar a entender onde estão os pedidos e quais situações precisam de acompanhamento.
 
-O processo operacional envolve criação do pedido, aprovação do pagamento, alocação, separação, embalagem, expedição, transporte e entrega.
+O projeto explora perguntas como:
 
-Embora esses dados existam nos sistemas operacionais, sua fragmentação dificulta responder perguntas importantes:
+- Quantos pedidos estão em cada etapa, foram concluídos ou foram cancelados?
+- Quanto tempo os pedidos concluídos levaram em cada etapa?
+- Há quanto tempo os pedidos ativos permanecem na etapa atual?
+- Quais etapas ou pedidos apresentam sinais de atenção ou estão atrasados?
+- Quais pedidos precisam ser investigados pela operação?
 
-- Em qual etapa os pedidos estão acumulando?
-- Quais etapas aumentam o tempo total do processo?
-- Quais pedidos estão parados ou próximos de violar o SLA?
-- Quais centros de distribuição apresentam maior tempo de ciclo?
-- Quais transportadoras concentram atrasos?
-- O pedido foi entregue no prazo e de forma completa?
-- Quais exceções devem ser tratadas primeiro?
+Como os dados são sintéticos, os resultados representam um cenário simulado.
 
-## Pergunta central
+## Páginas do Power BI
 
-> Como transformar o histórico operacional dos pedidos em uma visão confiável do fluxo, localizar gargalos e priorizar ações que melhorem prazo, produtividade e nível de serviço?
+### Visão Executiva
 
-## Objetivo
+Apresenta uma visão consolidada do fluxo de pedidos, com indicadores e volumes por etapa.
 
-Construir um produto analítico capaz de:
+![Página Visão Executiva do Power BI](docs/images/power-bi-visao-executiva.png)
 
-- reconstruir a jornada de cada pedido;
-- medir o tempo gasto em cada etapa;
-- acompanhar backlog, aging e throughput;
-- avaliar o cumprimento dos SLAs;
-- calcular entregas On Time In Full — OTIF;
-- identificar pedidos parados ou em risco;
-- apoiar análises de gargalos e atrasos;
-- oferecer rastreabilidade entre indicadores e pedidos.
+### Control Tower
 
-## Usuários do produto
+Permite acompanhar as etapas e consultar os pedidos em detalhe, com filtros e indicadores operacionais.
 
-| Usuário | Pergunta principal | Decisão apoiada |
-|---|---|---|
-| Diretor de Operações | Onde o fluxo está piorando? | Priorizar melhorias e capacidade |
-| Gerente de Logística | Quais pedidos e transportadoras exigem atenção? | Atuar sobre atrasos e exceções |
-| Líder de Armazém | Em qual etapa existe acúmulo? | Redistribuir esforço operacional |
-| Atendimento | Qual é a situação real do pedido? | Responder ao cliente com rastreabilidade |
-| Analista de Dados | As métricas são consistentes? | Validar regras e investigar anomalias |
+![Página Control Tower do Power BI](docs/images/power-bi-control-tower.png)
 
-## Decisões apoiadas
-
-O produto deverá ajudar as áreas responsáveis a:
-
-- priorizar pedidos próximos do vencimento do SLA;
-- identificar etapas com acúmulo de trabalho;
-- investigar centros de distribuição com maior tempo de ciclo;
-- comparar o desempenho das transportadoras;
-- localizar pedidos parados ou com eventos ausentes;
-- avaliar atrasos por região, depósito e transportadora;
-- acompanhar entregas completas e dentro do prazo;
-- separar variações normais de exceções que exigem ação.
-
-## Ciclo do pedido
+## Arquitetura
 
 ```mermaid
 flowchart LR
-    A["Pedido criado"] --> B["Pagamento aprovado"]
-    B --> C["Alocado"]
-    C --> D["Picking"]
-    D --> E["Embalado"]
-    E --> F["Expedido"]
-    F --> G["Em trânsito"]
-    G --> H["Entregue"]
+    A["Python<br/>Geração de dados sintéticos"] --> B["PostgreSQL<br/>Dados operacionais"]
+    B --> C["dbt<br/>Transformação e testes"]
+    C --> D["Power BI<br/>Análise e visualização"]
 ```
 
-Cancelamentos e tentativas de entrega serão tratados como ramificações do fluxo principal.
 
-## Escopo do MVP
+## Modelo analítico
 
-A primeira versão deverá:
+As linhagens (diagramas) abaixo mostram quais modelos do dbt alimentam cada tabela de reporting usada no Power BI, os dados passam pelas camadas **staging**, **intermediate** e **marts** até serem disponibilizados para análise e construção do produto.
 
-1. gerar dados operacionais sintéticos e reproduzíveis;
-2. armazenar as fontes em PostgreSQL;
-3. padronizar e testar as fontes com dbt;
-4. reconstruir a sequência de eventos de cada pedido;
-5. calcular os marcos e tempos do ciclo;
-6. modelar dimensões, fatos e marts analíticos;
-7. calcular backlog, aging, throughput, SLA e OTIF;
-8. identificar pedidos parados ou em risco por regras explicáveis;
-9. construir uma Control Tower no Power BI;
-10. permitir detalhamento até o pedido;
-11. reconciliar os indicadores do dashboard com os marts;
-12. produzir dois estudos analíticos com recomendações e limitações.
+### Mart_Control_Tower
 
-## Produto analítico inicial
+![alt text](docs\images\image.png)
 
-O dashboard do MVP terá quatro páginas:
+### Mart_Execuitve_Order_Flow
 
-1. **Visão executiva** — volume, lead time, SLA e OTIF;
-2. **Fluxo operacional** — backlog, aging e gargalos por etapa;
-3. **Desempenho logístico** — prazos, depósitos e transportadoras;
-4. **Jornada do pedido** — eventos, tempos e exceções de um pedido específico.
+![alt text](docs\images\image2.png)
 
-Também será criada uma fila de pedidos em risco, com:
+## Modelagem e qualidade dos dados
 
-- nível de severidade;
-- etapa atual;
-- tempo parado;
-- limite de SLA;
-- motivo do risco;
-- ação sugerida.
+As transformações no dbt foram organizadas em camadas.
+Em `staging`, os dados das fontes são padronizados;
+em `intermediate`, são combinados para representar regras e etapas da jornada dos pedidos;
+em `marts`, são preparados para análise no Power BI.
 
-## Métricas principais
+As tabelas fato e dimensão têm granularidades definidas para cada análise. Por exemplo, `fct_order_stage` tem uma linha por pedido e etapa, enquanto `mart_executive_order_flow` resume os indicadores por etapa.
+Os modelos de reporting alimentam as páginas **Visão Executiva** e **Control Tower**.
 
-| Métrica | Objetivo |
-|---|---|
-| Backlog | Quantificar pedidos ainda não concluídos |
-| Aging | Medir há quanto tempo o pedido permanece aberto ou parado |
-| Throughput | Medir quantos pedidos são processados em determinado período |
-| Lead time | Medir o tempo total ou por etapa |
-| SLA compliance | Avaliar o cumprimento dos limites operacionais |
-| On-time | Identificar pedidos entregues até a data prometida |
-| In-full | Identificar pedidos entregues integralmente |
-| OTIF | Medir pedidos entregues simultaneamente no prazo e completos |
+### Testes de qualidade
+Os testes verificam aspectos como valores ausentes, duplicidades, categorias permitidas e relacionamentos entre tabelas. Também foram criados testes em SQL para conferir regras de negócio, como reconciliações e consistência da granularidade.
 
-As definições completas, regras de elegibilidade e fórmulas serão registradas no catálogo de métricas.
+### Documentação técnica
+As descrições dos modelos e das colunas, junto com parte dos testes, estão nos arquivos YAML do dbt. A linhagem gerada pelo dbt mostra quais modelos e fontes contribuem para cada tabela final. O README resume essa arquitetura; a documentação do produto detalha o uso das páginas do Power BI.
 
-## Estudos analíticos do MVP
+## Tecnologias
 
-### 1. Gargalos do fluxo
+- Docker Compose
+- SQL
+- Git
+- Python: geração dos dados sintéticos.
+  - psycopg: conexão dos scripts com o PostgreSQL.
+  - dbt-postgres: dbt com o adaptador para PostgreSQL.
+  - pytest e Ruff: testes e verificação do código Python.
+- PostgreSQL
+- dbt Core
+- Power BI
 
-Identificar quais etapas, períodos ou centros de distribuição concentram maior backlog e tempo de processamento.
 
-### 2. Atrasos de entrega
+## Como executar
 
-Analisar como depósito, região, transportadora e tempo das etapas estão associados aos pedidos entregues com atraso.
+### Pré-requisitos
 
-Os estudos apresentarão observações, recomendações, limitações e distinção entre associação e causalidade.
+- Python 3.12 ou superior
+- Git
+- Docker Desktop
 
-## Arquitetura planejada
+### Instalação e configuração
 
-```mermaid
-flowchart LR
-    A["Geradores Python"] --> B["PostgreSQL operacional"]
-    B --> C["dbt staging"]
-    C --> D["dbt intermediate"]
-    D --> E["Fatos, dimensões e marts"]
-    E --> F["Power BI"]
-    E --> G["Análises em Python"]
+Clone o repositório e, na pasta do projeto, execute:
+
+```cmd
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install -e ".[dev]"
+copy .env.example .env
 ```
 
-O PostgreSQL será utilizado com separação lógica por schemas:
+Preencha o `.env` com as configurações locais.
 
-| Schema | Responsabilidade |
-|---|---|
-| `ecommerce` | Fontes operacionais sintéticas |
-| `analytics_staging` | Limpeza e padronização |
-| `analytics_intermediate` | Regras e transformações reutilizáveis |
-| `analytics_marts` | Fatos, dimensões e produtos de consumo |
+### Banco de dados
 
-## Tecnologias planejadas
+Inicie o PostgreSQL e teste a conexão:
 
-- PostgreSQL;
-- SQL;
-- dbt Core;
-- Python;
-- Pandas;
-- Jupyter;
-- Power BI;
-- Docker;
-- Git e GitHub;
-- GitHub Actions.
+```cmd
+docker compose up -d postgres
+python scripts\check_connection.py
+```
 
-## Fora do escopo do MVP
+### Geração dos dados
 
-Para manter o projeto alinhado a Analytics Engineering, Data Analysis e BI, o MVP não incluirá:
+Execute os scripts na raiz do projeto e nesta ordem:
 
-- arquitetura Bronze, Silver e Gold;
-- data lake ou lakehouse;
-- Spark ou PySpark;
-- Airflow;
-- Kafka, SQS ou streaming;
-- LocalStack;
-- Terraform;
-- implementação em cloud;
-- machine learning para previsão de atrasos;
-- otimização de rotas;
-- geolocalização em tempo real;
-- análise avançada de estoque;
-- análise de devoluções.
+```cmd
+python scripts\generate_reference_data.py
+python scripts\generate_customers.py
+python scripts\generate_products.py
+python scripts\generate_orders.py
+python scripts\generate_fulfillment.py
+```
 
-Estoque, atendimento parcial e devoluções poderão ser adicionados em versões posteriores.
+### Modelagem com dbt
 
-## Critérios de sucesso
+Antes de executar o dbt, configure o perfil local em `~/.dbt/profiles.yml`. O perfil usado pelo projeto é `atorders_analytics`, com alvo `dev`.
 
-O MVP será considerado concluído quando:
+```cmd
+cd dbt\atorders_analytics
+dbt debug
+dbt build
+```
 
-- os dados sintéticos puderem ser reproduzidos por uma seed;
-- outra pessoa conseguir executar o projeto seguindo o README;
-- o `dbt build` for concluído sem erros;
-- todos os modelos declararem seu grão;
-- a jornada dos pedidos for reconstruída corretamente;
-- SLA e OTIF possuírem definições documentadas;
-- fatos, dimensões e marts estiverem testados;
-- o Power BI reconciliar seus resultados com os marts;
-- cada pedido em risco apresentar uma justificativa;
-- os dois estudos analíticos apresentarem recomendações e limitações;
-- arquitetura, métricas e regras de negócio estiverem documentadas.
+`dbt debug` verifica a conexão com o banco. `dbt build` executa os modelos e testes do projeto.
 
-## Roadmap
-
-- [ ] Definir domínio, fontes e regras de negócio
-- [ ] Criar catálogo inicial de métricas
-- [ ] Preparar PostgreSQL e Docker
-- [ ] Gerar dados operacionais sintéticos
-- [ ] Criar projeto dbt
-- [ ] Implementar staging
-- [ ] Reconstruir o ciclo de vida dos pedidos
-- [ ] Criar fatos, dimensões e marts
-- [ ] Desenvolver a fila de pedidos em risco
-- [ ] Construir o Power BI
-- [ ] Realizar os estudos analíticos
-- [ ] Implementar testes, documentação e CI
-
-## Estrutura inicial
+## Estrutura do repositório
 
 ```text
-ATOrders/
+.
+├── dbt/
+│   └── atorders_analytics/
 ├── docs/
-│   ├── architecture/
-│   ├── business/
-│   └── metrics/
+│   ├── images/
+│   └── power-bi.md
+├── infra/
+├── scripts/
 ├── src/
+│   └── atorders/
 ├── tests/
-├── .gitignore
-└── README.md
-
+├── .env.example
+├── docker-compose.yml
+├── pyproject.toml
+├── README.md
+└── README.pt-BR.md
 ```
 
-A estrutura será ampliada conforme os componentes forem implementados.
+## Próximas evoluções
+
+- Criar páginas no Power BI para aprofundar as análises de Pagamentos e Entregas.
+- Automatizar verificações do projeto com GitHub Actions, incluindo lint, testes Python e testes dbt.

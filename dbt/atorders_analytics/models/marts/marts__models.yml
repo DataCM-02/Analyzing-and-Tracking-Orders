@@ -77,7 +77,6 @@ models:
 
 
 
-
   - name: dim_customer
     description: >
       Customer dimension used to analyze orders and operational performance
@@ -292,6 +291,42 @@ models:
         description: Indicates whether the carrier is currently active.
         data_tests:
           - not_null
+
+
+
+
+  - name: dim_service_level
+    description: >
+      Service level dimension used to filter orders and operational
+      stages by their contracted delivery priority.
+
+    columns:
+      - name: service_level
+        description: Technical identifier of the service level.
+        data_tests:
+          - not_null
+          - unique
+          - accepted_values:
+              arguments:
+                values:
+                  - standard
+                  - express
+                  - priority
+
+      - name: service_level_name
+        description: Business-facing service level name in Portuguese.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: service_level_sort_order
+        description: Numeric order used to sort service levels in reports.
+        data_tests:
+          - not_null
+          - unique
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3]
 
 
 
@@ -904,6 +939,15 @@ models:
                 to: ref('dim_warehouse')
                 field: warehouse_id
 
+      - name: order_date_key
+        description: Date key representing the order creation date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
       - name: stage_started_date_key
         description: Date key representing the stage start date.
         data_tests:
@@ -934,6 +978,10 @@ models:
         description: Service level selected for the order.
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_service_level')
+                field: service_level
 
       - name: order_current_stage
         description: Current operational stage of the order.
@@ -974,6 +1022,11 @@ models:
           - accepted_values:
               arguments:
                 values: ['completed', 'current', 'cancelled']
+
+      - name: order_created_at
+        description: Timestamp when the associated order was created.
+        data_tests:
+          - not_null
 
       - name: stage_started_at
         description: Timestamp when the stage started.
@@ -1058,6 +1111,15 @@ models:
               arguments:
                 to: ref('dim_warehouse')
                 field: warehouse_id
+
+      - name: service_level
+        description: Service level selected for the associated order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_service_level')
+                field: service_level
 
       - name: carrier_id
         description: Carrier responsible for the shipment.
