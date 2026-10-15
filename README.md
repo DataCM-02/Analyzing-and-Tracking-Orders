@@ -6,7 +6,7 @@ Criei o **AT-orders** para analisar a jornada de pedidos de e-commerce, da cria�
 
 No Power BI, desenvolvi duas páginas: **Visão Executiva**, para acompanhar o fluxo geral, e **Control Tower**, para investigar pedidos que precisam de atenção.
 
-## Contexto e perguntas de negócio
+## Contexto e perguntas do projeto
 
 Em uma operação de vendas, acompanhar um pedido envolve diferentes etapas e informações operacionais. Uma visão consolidada em fluxo pode ajudar a entender onde estão os pedidos e quais situações precisam de acompanhamento.
 
@@ -67,7 +67,7 @@ As tabelas fato e dimensão têm granularidades definidas para cada análise. Po
 Os modelos de reporting alimentam as páginas **Visão Executiva** e **Control Tower**.
 
 ### Testes de qualidade
-Os testes verificam aspectos como valores ausentes, duplicidades, categorias permitidas e relacionamentos entre tabelas. Também foram criados testes em SQL para conferir regras de negócio, como reconciliações e consistência da granularidade.
+Os testes verificam aspectos como valores ausentes, duplicidades, categorias permitidas e relacionamentos entre tabelas. Também foram criados testes em SQL para conferir regras aplicadas ao fluxo, como reconciliações e consistência da granularidade.
 
 ### Documentação técnica
 As descrições dos modelos e das colunas, junto com parte dos testes, estão nos arquivos YAML do dbt. A linhagem gerada pelo dbt mostra quais modelos e fontes contribuem para cada tabela final. O README resume essa arquitetura; a documentação do produto detalha o uso das páginas do Power BI.
